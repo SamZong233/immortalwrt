@@ -74,6 +74,10 @@ mediatek_setup_interfaces()
 	iptime,ax7800m-6e|\
 	jdcloud,re-cp-03|\
 	mediatek,mt7981-rfb|\
+	netcore,n30pro)
+		ucidef_set_interface_lan "lan1 lan2 lan3 lan4"
+		ucidef_set_interface_wan "eth1"
+		;;
 	netcore,n60|\
 	netcore,n60-pro|\
 	nradio,c8-668gl|\
