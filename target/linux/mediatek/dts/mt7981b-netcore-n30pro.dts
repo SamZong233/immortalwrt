@@ -1,0 +1,102 @@
+/* SPDX-License-Identifier: (GPL-2.0-only OR MIT) */
+
+/dts-v1/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/input/input.h>
+#include <dt-bindings/leds/common.h>
+
+#include "mt7981b-netcore-common.dtsi"
+
+/ {
+	compatible = "netcore,n30pro", "mediatek,mt7981";
+	model = "Netcore N30 Pro";
+
+	aliases {
+		label-mac-device = &gmac0;
+		led-boot = &led_power;
+		led-failsafe = &led_power;
+		led-running = &led_power;
+		led-upgrade = &led_wps;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+
+		led_power: power {
+			color = <LED_COLOR_ID_BLUE>;
+			function = LED_FUNCTION_POWER;
+			gpios = <&pio 4 GPIO_ACTIVE_LOW>;
+			default-state = "on";
+		};
+
+		internet {
+			color = <LED_COLOR_ID_BLUE>;
+			function = LED_FUNCTION_WAN_ONLINE;
+			gpios = <&pio 7 GPIO_ACTIVE_LOW>;
+		};
+
+		led_wps: wps {
+			color = <LED_COLOR_ID_BLUE>;
+			function = LED_FUNCTION_WPS;
+			gpios = <&pio 5 GPIO_ACTIVE_LOW>;
+		};
+
+		wan {
+			color = <LED_COLOR_ID_BLUE>;
+			function = LED_FUNCTION_WAN;
+			gpios = <&pio 8 GPIO_ACTIVE_LOW>;
+		};
+	};
+};
+
+/*
+ * 端口映射(逐口实测确认):
+ *   物理 LAN1(最靠 WAN)  = 交换机 port0
+ *   物理 LAN2            = port1
+ *   物理 LAN3            = port2
+ *   物理 LAN4(最远端)     = port3
+ *   port4                = 内部第 5 颗 PHY,无 RJ45 座子(悬空)
+ *
+ * 5 颗 PHY 全部定义为 DSA 用户口:确保每个口都有已注册的中断,
+ * 杜绝 mt7530 在"未定义口产生 PHY 中断"时的空指针崩溃
+ * (handle_nested_irq <- mt7530_irq_thread_fn)。
+ * port1(lan5)无座子,保留定义即可,不要加进 br-lan。
+ */
+
+&switch {
+	ports {
+		port@0 {
+			reg = <0>;
+			label = "lan1";	/* 物理 LAN1 */
+		};
+
+		port@1 {
+			reg = <1>;
+			label = "lan2";	/* 物理 LAN2 */
+		};
+
+		port@2 {
+			reg = <2>;
+			label = "lan3";	/* 物理 LAN3 */
+		};
+
+		port@3 {
+			reg = <3>;
+			label = "lan4";	/* 物理 LAN4 */
+		};
+
+		port@4 {
+			reg = <4>;
+			label = "lan5";	/* 悬空 PHY,占位防崩,无座子 */
+		};
+	};
+};
+
+&usb_phy {
+	status = "okay";
+};
+
+&xhci {
+	status = "okay";
+};
